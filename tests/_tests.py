@@ -30,10 +30,11 @@ class MyScreenManager(ScreenManager):
                 )
             )
             _screen.add_widget(layout)
-        self.screens = [Screen(name=name_factory(f"Screen {i}")) for i in
-                        range(4)]
-        print(self.screens)
-        for screen in self.screens:
+
+        self._screens = [
+            Screen(name=name_factory(f"Screen {i}")) for i in range(4)
+        ]
+        for screen in self._screens:
             make_screen(screen)
         self.menu_screen = MenuScreen(name="menu")
         self.setting_screen = SettingsScreen(name='settings')
@@ -55,7 +56,8 @@ class MyScreenManager(ScreenManager):
 
     def switch_to_rnd(self):
         self.transition.direction = "up"
-        self.switch_to(random.choice(self.screens))
+        screen = random.choice(self._screens)
+        self.switch_to(screen)
 
 
 # Declare both screens
