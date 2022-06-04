@@ -6,18 +6,19 @@ from kivy.uix.label import Label
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
+from kivy.utils import platform
 
 from architecture import settings_buttons, menu_buttons, buttons_names
 from constants import *
 from game import Game
 
-SMALL_HEIGHT = 75
-MEDIUM_HEIGHT = 150
-LARGE_HEIGHT = 250
+SMALL_HEIGHT = 75 if platform == 'android' else 40
+MEDIUM_HEIGHT = 150 if platform == 'android' else 60
+LARGE_HEIGHT = 250 if platform == 'android' else 80
 
-SMALL_WIDTH = 250
-MEDIUM_WIDTH = 500
-LARGE_WIDTH = 750
+SMALL_WIDTH = 250 if platform == 'android' else 100
+MEDIUM_WIDTH = 500 if platform == 'android' else 200
+LARGE_WIDTH = 750 if platform == 'android' else 300
 
 
 def name_factory(order):
