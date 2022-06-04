@@ -25,14 +25,26 @@ class Game:
             yield player
 
     @property
+    def player_number(self):
+        return len(self._players)
+
+    @property
     def jury(self):
         for jury in self._jury:
             yield jury
 
     @property
+    def jury_number(self):
+        return len(self._jury)
+
+    @property
     def judgements(self):
         for judgement in self._judgements:
             yield judgement
+
+    @property
+    def judgment_number(self):
+        return len(self._judgements)
 
     @property
     def scores(self):
@@ -61,6 +73,15 @@ class Game:
     def add_judgement(self, judgement):
         if not self.is_set:
             self._judgements.append(judgement)
+        else:
+            raise RuntimeError
+
+    def remove_judgement(self, judgement):
+        if not self.is_set:
+            if judgement in self._judgements:
+                self._judgements.remove(judgement)
+            else:
+                raise ValueError
         else:
             raise RuntimeError
 
