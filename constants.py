@@ -1,0 +1,5 @@
+GAME = "Game"
+SETTINGS = "Settings"
+EXIT = "Exit"
+JUDGEMENTS = "Judgements"
+BACK = "Back"
