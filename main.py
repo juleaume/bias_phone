@@ -1,5 +1,3 @@
-import random
-
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -38,22 +36,6 @@ class BiasScreenManager(ScreenManager):
         self._setup_screens()
 
     def _setup_screens(self):
-        def make_screen(_screen: Screen):
-            layout = BoxLayout(orientation="vertical")
-            layout.add_widget(Label(text=screen.name))
-            layout.add_widget(
-                Button(
-                    text="Back to settings",
-                    on_press=self.switch_to_settings
-                )
-            )
-            _screen.add_widget(layout)
-
-        self._screens = [
-            Screen(name=name_factory(f"Screen {i}")) for i in range(4)
-        ]
-        for screen in self._screens:
-            make_screen(screen)
         self.menu_screen = _ButtonScreen(
             buttons=menu_buttons,
             name="menu"
@@ -98,11 +80,6 @@ class BiasScreenManager(ScreenManager):
     def switch_to_judgements_settings(self):
         self.transition.direction = "left"
         self.switch_to(self.judgement_settings)
-
-    def switch_to_rnd(self):
-        self.transition.direction = "up"
-        screen = random.choice(self._screens)
-        self.switch_to(screen)
 
 
 class _ButtonScreen(Screen):
