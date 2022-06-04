@@ -61,7 +61,7 @@ class Game:
 
     def remove_player(self, player):
         if not self.is_set:
-            if player in self._players:
+            if player in self.players:
                 self._players.remove(player)
             else:
                 raise ValueError
@@ -78,6 +78,15 @@ class Game:
         else:
             raise RuntimeError
 
+    def remove_jury(self, jury):
+        if not self.is_set:
+            if jury in self.jury:
+                self._jury.remove(jury)
+            else:
+                raise ValueError
+        else:
+            raise RuntimeError
+
     def add_juries(self, *juries):
         for jury in juries:
             self.add_jury(jury)
@@ -90,7 +99,7 @@ class Game:
 
     def remove_judgement(self, judgement):
         if not self.is_set:
-            if judgement in self._judgements:
+            if judgement in self.judgements:
                 self._judgements.remove(judgement)
             else:
                 raise ValueError
@@ -120,6 +129,11 @@ class Game:
                 final_scores[player] += self.scores.get(player).get(judgment)
             final_scores[player] /= len(self._judgements)
         return final_scores
+
+    @property
+    def can_start(self):
+        return self.jury_number > 0 and self.judgment_number > 0 and \
+               self.player_number > 1
 
 
 if __name__ == '__main__':

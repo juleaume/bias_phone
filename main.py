@@ -31,8 +31,11 @@ class BiasScreenManager(ScreenManager):
     def __init__(self, **kwargs):
         super(BiasScreenManager, self).__init__(**kwargs)
         self.game = Game(
+            players=["a", "b"],
+            jury=["a", "b"],
             judgements=["Ecoute", "Bienveillance"]
         )
+        self.order_screens = list()
         self._setup_screens()
 
     def _setup_screens(self):
@@ -48,6 +51,7 @@ class BiasScreenManager(ScreenManager):
             lambda: self.switch_to_settings("right")
         self.game_screen = GameInitScreen(self.game, name="game_init")
         self.game_screen.back_button.on_press = self.switch_to_menu
+        self.game_screen.start_button.on_press = self.init_game
 
         self.menu_screen.buttons[EXIT].on_press = exit
         self.menu_screen.buttons[EXIT].height = LARGE_HEIGHT
@@ -81,6 +85,37 @@ class BiasScreenManager(ScreenManager):
         self.transition.direction = "left"
         self.switch_to(self.judgement_settings)
 
+    def init_game(self):
+        self.game.set()
+        for judgement in self.game.judgements:
+            for player in self.game.players:
+                for jury in self.game.jury:
+                    prep_screen = PlayerPrepScreen(
+                        self, jury, name=jury
+                    )
+                    self.order_screens.append(prep_screen)
+                    self.add_widget(prep_screen)
+                    judgement_screen = VotingScreen(
+                        self, self.game, player, judgement,
+                        name=f"{jury}_vote_{judgement}_for_{player}")
+                    self.order_screens.append(judgement_screen)
+                    self.add_widget(judgement_screen)
+                transition_screen = SummaryScreen(
+                    self, self.game, player, judgement,
+                    name=f"score_{player}_{judgement}"
+                )
+                self.order_screens.append(transition_screen)
+                self.add_widget(transition_screen)
+        end_screen = EndScreen(self, self.game, name="endscreen")
+        end_screen.ok_button.on_press = self.switch_to_menu
+        self.add_widget(end_screen)
+        self.order_screens.append(end_screen)
+        for screen, next_screen in zip(self.order_screens[:-1],
+                                       self.order_screens[1:]):
+            screen.set_next_screen(next_screen)
+
+        self.switch_to(self.order_screens[0])
+
 
 class _ButtonScreen(Screen):
     def __init__(self, buttons, **kwargs):
@@ -95,6 +130,124 @@ class _ButtonScreen(Screen):
             _button = Button(text=buttons_names.get(b, ""))
             self.layout.add_widget(_button)
             self.buttons[b] = _button
+
+
+class GameScreen(Screen):
+    def __init__(self, screen_manager: ScreenManager, **kwargs):
+        super().__init__(**kwargs)
+        self.screen_manager = screen_manager
+        self.next_screen = None
+
+    def set_next_screen(self, next_screen: Screen):
+        self.next_screen = next_screen
+
+    def switch_to_next(self):
+        if isinstance(self.next_screen, Screen):
+            self.screen_manager.switch_to(self.next_screen)
+            if hasattr(self.next_screen, "set_text"):
+                self.next_screen.set_text()
+
+
+class PlayerPrepScreen(GameScreen):
+    def __init__(self, screen_manager, jury, **kwargs):
+        super().__init__(screen_manager, **kwargs)
+        layout = BoxLayout(orientation="vertical")
+        label = Label(text=f"C'est le tour de {jury} !")
+        layout.add_widget(label)
+        ok_button = Button(text="ok", height=LARGE_HEIGHT, size_hint_y=None)
+        ok_button.on_press = self.switch_to_next
+        layout.add_widget(ok_button)
+        self.add_widget(layout)
+
+
+class VotingScreen(GameScreen):
+    def __init__(self, screen_manager, game: Game, player: str, judgement:
+    str, **kwargs):
+        super().__init__(screen_manager, **kwargs)
+        self.game = game
+        self.player = player
+        self.judgement = judgement
+        layout = BoxLayout(orientation="vertical")
+        layout.add_widget(Label(
+            text=f"{judgement.upper()} pour {player.upper()}",
+            height=LARGE_HEIGHT, size_hint_y=None,
+        ))
+        ten_button = Button(text="10", height=LARGE_HEIGHT, size_hint_y=None)
+        ten_button.on_press = lambda: self.vote(ten_button)
+        layout.add_widget(ten_button)
+        grid_layout = GridLayout(cols=3, size_hint_y=None)
+        grid_layout.bind(minimum_height=grid_layout.setter('height'))
+
+        for i in range(9, 0, -1):
+            btn = Button(
+                text=str(i), size_hint_y=None, height=LARGE_HEIGHT,
+                on_press=lambda x: self.vote(int(x.text))
+            )
+            grid_layout.add_widget(btn)
+        layout.add_widget(grid_layout)
+        zero_button = Button(text="0", height=LARGE_HEIGHT, size_hint_y=None)
+        zero_button.on_press = lambda: self.vote(zero_button)
+        layout.add_widget(zero_button)
+        self.add_widget(layout)
+
+    def vote(self, button: int):
+        self.game.judge(self.player, self.judgement, button)
+        self.switch_to_next()
+
+
+class SummaryScreen(GameScreen):
+    def __init__(self, screen_manager, game: Game, player: str, judgement:
+    str, **kwargs):
+        super(SummaryScreen, self).__init__(screen_manager, **kwargs)
+        self.game = game
+        self.player = player
+        self.judgement = judgement
+        layout = BoxLayout(orientation="vertical")
+        self.score_label = Label()
+        layout.add_widget(self.score_label)
+        self.add_widget(layout)
+
+        ok_button = Button(text="ok", height=LARGE_HEIGHT, size_hint_y=None)
+        ok_button.on_press = self.switch_to_next
+        layout.add_widget(ok_button)
+
+    def set_text(self):
+        score = self.game.summarize_turn(self.player, self.judgement)
+        self.score_label.text = \
+            f"{self.player.upper()} a pour le trait {self.judgement} un " \
+            f"score moyen de {score:.2f}"
+
+
+class EndScreen(GameScreen):
+    def __init__(self, screen_manager, game: Game, **kwargs):
+        super(EndScreen, self).__init__(screen_manager, **kwargs)
+        self.game = game
+        layout = BoxLayout(orientation="vertical")
+        self.label = Label()
+        layout.add_widget(self.label)
+
+        self.ok_button = Button(text="Retour")
+        layout.add_widget(self.ok_button)
+        self.add_widget(layout)
+
+    def set_text(self):
+        final_score = self.game.finish_game()
+        best_player = ""
+        best_score = 0
+        worst_player = ""
+        worst_score = float('inf')
+        for quick_pass in range(2):
+            for player, score in final_score.items():
+                if score > best_score:
+                    best_player = player
+                    best_score = score
+                elif score < worst_score:
+                    worst_player = player
+                    worst_score = score
+        self.label.text = \
+            f"Le meilleur être humain est {best_player.upper()} avec un " \
+            f"score de {best_score} et le pire est {worst_player.upper()} " \
+            f"avec un score de {worst_score}"
 
 
 class GameInitScreen(Screen):
@@ -156,15 +309,17 @@ class GameInitScreen(Screen):
             )
             _l.add_widget(_b)
             self.scroll_layout.add_widget(_l)
-        self.start_button.disabled = self.game.player_number <= 1
+        self.start_button.disabled = not self.game.can_start
 
     def add_player_to_game(self):
         self.game.add_player(self.new_player.text)
+        self.game.add_jury(self.new_player.text)
         self.new_player.text = ""
         self.display_players()
 
     def remove_player(self, player):
         self.game.remove_player(player)
+        self.game.remove_jury(player)
         self.display_players()
 
 
