@@ -153,7 +153,7 @@ class PlayerPrepScreen(GameScreen):
     def __init__(self, screen_manager, jury, **kwargs):
         super().__init__(screen_manager, **kwargs)
         layout = BoxLayout(orientation="vertical")
-        label = Label(text=f"C'est le tour de {jury} !")
+        label = Label(text=f"C'est au tour de {jury} !")
         layout.add_widget(label)
         ok_button = Button(text="ok", height=LARGE_HEIGHT, size_hint_y=None)
         ok_button.on_press = self.switch_to_next
@@ -174,7 +174,7 @@ class VotingScreen(GameScreen):
             height=LARGE_HEIGHT, size_hint_y=None,
         ))
         ten_button = Button(text="10", height=LARGE_HEIGHT, size_hint_y=None)
-        ten_button.on_press = lambda: self.vote(ten_button)
+        ten_button.on_press = lambda: self.vote(10)
         layout.add_widget(ten_button)
         grid_layout = GridLayout(cols=3, size_hint_y=None)
         grid_layout.bind(minimum_height=grid_layout.setter('height'))
@@ -187,7 +187,7 @@ class VotingScreen(GameScreen):
             grid_layout.add_widget(btn)
         layout.add_widget(grid_layout)
         zero_button = Button(text="0", height=LARGE_HEIGHT, size_hint_y=None)
-        zero_button.on_press = lambda: self.vote(zero_button)
+        zero_button.on_press = lambda: self.vote(0)
         layout.add_widget(zero_button)
         self.add_widget(layout)
 
@@ -304,6 +304,11 @@ class GameInitScreen(Screen):
         self.display_players()
 
     def display_players(self):
+        def remove_factory(_p):
+            def _remove_player(_):
+                self.remove_player(_p)
+            return _remove_player
+
         self.scroll_layout.clear_widgets()
         for player in self.game.players:
             _l = BoxLayout(
@@ -312,10 +317,10 @@ class GameInitScreen(Screen):
             _l.add_widget(Label(
                 text=player, size_hint_y=None, height=SMALL_HEIGHT
             ))
+            remover = remove_factory(player)
             _b = Button(
                 text="Supprimer", size_hint_y=None, height=SMALL_HEIGHT,
-                width=SMALL_WIDTH, size_hint_x=None, on_press=lambda x:
-                self.remove_player(player)
+                width=SMALL_WIDTH, size_hint_x=None, on_press=remover
             )
             _l.add_widget(_b)
             self.scroll_layout.add_widget(_l)
@@ -360,7 +365,6 @@ class JudgementScreen(Screen):
         self.scroll_layout.bind(
             minimum_height=self.scroll_layout.setter('height')
         )
-        self.display_judgements()
         scroll_view = ScrollView()
         scroll_view.add_widget(self.scroll_layout)
         layout.add_widget(scroll_view)
@@ -369,8 +373,14 @@ class JudgementScreen(Screen):
         )
         layout.add_widget(self.back_button)
         self.add_widget(layout)
+        self.display_judgements()
 
     def display_judgements(self):
+        def remove_factory(_j):
+            def _remove_judgement(_):
+                self.remove_judgement(_j)
+            return _remove_judgement
+
         self.scroll_layout.clear_widgets()
         for judgement in self.game.judgements:
             _l = BoxLayout(
@@ -379,13 +389,14 @@ class JudgementScreen(Screen):
             _l.add_widget(Label(
                 text=judgement, size_hint_y=None, height=SMALL_HEIGHT
             ))
+            remover = remove_factory(judgement)
             _b = Button(
                 text="Supprimer", size_hint_y=None, height=SMALL_HEIGHT,
-                width=SMALL_WIDTH, size_hint_x=None, on_press=lambda x:
-                self.remove_judgement(judgement)
+                width=SMALL_WIDTH, size_hint_x=None, on_press=remover
             )
             _l.add_widget(_b)
             self.scroll_layout.add_widget(_l)
+        self.back_button.disabled = self.game.judgment_number == 0
 
     def add_judgement_to_game(self):
         self.game.add_judgement(self.new_judgement.text)
