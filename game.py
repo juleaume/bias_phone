@@ -21,26 +21,29 @@ class Game:
 
     @property
     def players(self):
-        for player in self._players:
-            yield player
+        return self._players
 
     @property
     def player_number(self):
-        return len(self._players)
+        return len(self.players)
 
     @property
     def jury(self):
-        for jury in self._jury:
-            yield jury
+        return self._jury
+
+    @jury.setter
+    def jury(self, *value):
+        self._jury = list()
+        for jury in value:
+            self._jury.append(jury)
 
     @property
     def jury_number(self):
-        return len(self._jury)
+        return len(self.jury)
 
     @property
     def judgements(self):
-        for judgement in self._judgements:
-            yield judgement
+        return self._judgements
 
     @property
     def judgment_number(self):
