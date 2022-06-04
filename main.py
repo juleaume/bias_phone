@@ -11,13 +11,13 @@ from architecture import settings_buttons, menu_buttons, buttons_names
 from constants import *
 from game import Game
 
-SMALL_HEIGHT = 40
-MEDIUM_HEIGHT = 60
-LARGE_HEIGHT = 80
+SMALL_HEIGHT = 75
+MEDIUM_HEIGHT = 150
+LARGE_HEIGHT = 250
 
-SMALL_WIDTH = 100
-MEDIUM_WIDTH = 200
-LARGE_WIDTH = 300
+SMALL_WIDTH = 250
+MEDIUM_WIDTH = 500
+LARGE_WIDTH = 750
 
 
 def name_factory(order):
@@ -31,8 +31,8 @@ class BiasScreenManager(ScreenManager):
     def __init__(self, **kwargs):
         super(BiasScreenManager, self).__init__(**kwargs)
         self.game = Game(
-            players=["a", "b"],
-            jury=["a", "b"],
+            players=["Louis", "Théo", "Jules"],
+            jury=["Louis", "Jules"],
             judgements=["Ecoute", "Bienveillance"]
         )
         self.order_screens = list()
@@ -214,8 +214,9 @@ class SummaryScreen(GameScreen):
     def set_text(self):
         score = self.game.summarize_turn(self.player, self.judgement)
         self.score_label.text = \
-            f"{self.player.upper()} a pour le trait {self.judgement} un " \
-            f"score moyen de {score:.2f}"
+            f"{self.player.upper()} a pour le trait\n" \
+            f"{self.judgement} un score moyen de\n" \
+            f"{score:.2f}"
 
 
 class EndScreen(GameScreen):
@@ -226,7 +227,9 @@ class EndScreen(GameScreen):
         self.label = Label()
         layout.add_widget(self.label)
 
-        self.ok_button = Button(text="Retour")
+        self.ok_button = Button(
+            text="Retour", height=MEDIUM_HEIGHT, size_hint_y=None
+        )
         layout.add_widget(self.ok_button)
         self.add_widget(layout)
 
@@ -244,10 +247,16 @@ class EndScreen(GameScreen):
                 elif score < worst_score:
                     worst_player = player
                     worst_score = score
+        others = ""
+        for player, score in final_score.items():
+            others += f"{player}: {score}\n"
         self.label.text = \
-            f"Le meilleur être humain est {best_player.upper()} avec un " \
-            f"score de {best_score} et le pire est {worst_player.upper()} " \
-            f"avec un score de {worst_score}"
+            f"Le meilleur être humain est {best_player.upper()}\n" \
+            f"avec un score de {best_score}\n" \
+            f"le pire est {worst_player.upper()}\n" \
+            f"avec un score de {worst_score}.\n\n" \
+            f"les scores finaux sont :\n" \
+            f"{others}"
 
 
 class GameInitScreen(Screen):
@@ -304,7 +313,7 @@ class GameInitScreen(Screen):
             ))
             _b = Button(
                 text="Supprimer", size_hint_y=None, height=SMALL_HEIGHT,
-                width=100, size_hint_x=None, on_press=lambda x:
+                width=SMALL_WIDTH, size_hint_x=None, on_press=lambda x:
                 self.remove_player(player)
             )
             _l.add_widget(_b)
@@ -371,7 +380,7 @@ class JudgementScreen(Screen):
             ))
             _b = Button(
                 text="Supprimer", size_hint_y=None, height=SMALL_HEIGHT,
-                width=100, size_hint_x=None, on_press=lambda x:
+                width=SMALL_WIDTH, size_hint_x=None, on_press=lambda x:
                 self.remove_judgement(judgement)
             )
             _l.add_widget(_b)
