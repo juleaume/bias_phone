@@ -63,8 +63,6 @@ class Game:
         if not self.is_set:
             if player in self.players:
                 self._players.remove(player)
-            else:
-                raise ValueError
         else:
             raise RuntimeError
 
@@ -82,8 +80,6 @@ class Game:
         if not self.is_set:
             if jury in self.jury:
                 self._jury.remove(jury)
-            else:
-                raise ValueError
         else:
             raise RuntimeError
 
@@ -101,8 +97,6 @@ class Game:
         if not self.is_set:
             if judgement in self.judgements:
                 self._judgements.remove(judgement)
-            else:
-                raise ValueError
         else:
             raise RuntimeError
 
