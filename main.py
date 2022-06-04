@@ -17,6 +17,10 @@ SMALL_HEIGHT = 40
 MEDIUM_HEIGHT = 60
 LARGE_HEIGHT = 80
 
+SMALL_WIDTH = 100
+MEDIUM_WIDTH = 200
+LARGE_WIDTH = 300
+
 
 def name_factory(order):
     def name():
@@ -131,7 +135,8 @@ class GameInitScreen(Screen):
             text='', multiline=False, size_hint_y=None, height=MEDIUM_HEIGHT
         )
         add_button = Button(
-            text="Ajouter", size_hint_y=None, height=MEDIUM_HEIGHT
+            text="Ajouter", size_hint=(None, None), height=MEDIUM_HEIGHT,
+            width=MEDIUM_WIDTH
         )
         add_button.on_press = self.add_player_to_game
         add_layout.add_widget(self.new_player)
@@ -191,6 +196,9 @@ class JudgementScreen(Screen):
         super(JudgementScreen, self).__init__(**kwargs)
         self.game = game
         layout = BoxLayout(orientation="vertical")
+        layout.add_widget(Label(
+            text="Jugements", height=LARGE_HEIGHT, size_hint_y=None
+        ))
         add_layout = BoxLayout(
             orientation="horizontal", size_hint_y=None, height=MEDIUM_HEIGHT
         )
@@ -198,7 +206,8 @@ class JudgementScreen(Screen):
             text='', multiline=False, size_hint_y=None, height=MEDIUM_HEIGHT
         )
         add_button = Button(
-            text="Ajouter", size_hint_y=None, height=MEDIUM_HEIGHT
+            text="Ajouter", size_hint=(None, None), height=MEDIUM_HEIGHT,
+            width=MEDIUM_WIDTH
         )
         add_button.on_press = self.add_judgement_to_game
         add_layout.add_widget(self.new_judgement)
