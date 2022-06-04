@@ -56,6 +56,15 @@ class Game:
         else:
             raise RuntimeError
 
+    def remove_player(self, player):
+        if not self.is_set:
+            if player in self._players:
+                self._players.remove(player)
+            else:
+                raise ValueError
+        else:
+            raise RuntimeError
+
     def add_players(self, *players):
         for player in players:
             self.add_player(player)

@@ -60,7 +60,8 @@ class BiasScreenManager(ScreenManager):
         self.judgement_settings = JudgementScreen(self.game, name="Judgements")
         self.judgement_settings.back_button.on_press = \
             lambda: self.switch_to_settings("right")
-        self.game_screen = GameScreen(name="game")
+        self.game_screen = GameInitScreen(self.game, name="game_init")
+        self.game_screen.back_button.on_press = self.switch_to_menu
 
         self.menu_screen.buttons[EXIT].on_press = exit
         self.menu_screen.buttons[EXIT].height = LARGE_HEIGHT
@@ -115,12 +116,74 @@ class _ButtonScreen(Screen):
             self.buttons[b] = _button
 
 
-class GameScreen(Screen):
-    def __init__(self, **kwargs):
-        super(GameScreen, self).__init__(**kwargs)
-        self._players = list()
-        self.layout = BoxLayout()
-        self.add_widget(self.layout)
+class GameInitScreen(Screen):
+    def __init__(self, game: Game, **kwargs):
+        super().__init__(**kwargs)
+        self.game = game
+        layout = BoxLayout(orientation="vertical")
+        layout.add_widget(Label(
+            text="Joueurs et joueuses", height=LARGE_HEIGHT, size_hint_y=None
+        ))
+        add_layout = BoxLayout(
+            orientation="horizontal", size_hint_y=None, height=MEDIUM_HEIGHT
+        )
+        self.new_player = TextInput(
+            text='', multiline=False, size_hint_y=None, height=MEDIUM_HEIGHT
+        )
+        add_button = Button(
+            text="Ajouter", size_hint_y=None, height=MEDIUM_HEIGHT
+        )
+        add_button.on_press = self.add_player_to_game
+        add_layout.add_widget(self.new_player)
+        add_layout.add_widget(add_button)
+        layout.add_widget(add_layout)
+        self.scroll_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        # Make sure the height is such that there is something to scroll.
+        self.scroll_layout.bind(
+            minimum_height=self.scroll_layout.setter('height')
+        )
+        scroll_view = ScrollView()
+        scroll_view.add_widget(self.scroll_layout)
+        layout.add_widget(scroll_view)
+        self.start_button = Button(
+            text="Démarrer !", height=LARGE_HEIGHT, size_hint_y=None
+        )
+        self.start_button.disabled = True
+        layout.add_widget(self.start_button)
+        self.back_button = Button(
+            text="Retour", height=MEDIUM_HEIGHT, size_hint_y=None
+        )
+        layout.add_widget(self.back_button)
+        self.add_widget(layout)
+
+        self.display_players()
+
+    def display_players(self):
+        self.scroll_layout.clear_widgets()
+        for player in self.game.players:
+            _l = BoxLayout(
+                orientation="horizontal", size_hint_y=None, height=SMALL_HEIGHT
+            )
+            _l.add_widget(Label(
+                text=player, size_hint_y=None, height=SMALL_HEIGHT
+            ))
+            _b = Button(
+                text="Supprimer", size_hint_y=None, height=SMALL_HEIGHT,
+                width=100, size_hint_x=None, on_press=lambda x:
+                self.remove_player(player)
+            )
+            _l.add_widget(_b)
+            self.scroll_layout.add_widget(_l)
+        self.start_button.disabled = self.game.player_number <= 1
+
+    def add_player_to_game(self):
+        self.game.add_player(self.new_player.text)
+        self.new_player.text = ""
+        self.display_players()
+
+    def remove_player(self, player):
+        self.game.remove_player(player)
+        self.display_players()
 
 
 class JudgementScreen(Screen):
@@ -132,7 +195,8 @@ class JudgementScreen(Screen):
             orientation="horizontal", size_hint_y=None, height=MEDIUM_HEIGHT
         )
         self.new_judgement = TextInput(
-            text='', multiline=False, size_hint_y=None, height=MEDIUM_HEIGHT)
+            text='', multiline=False, size_hint_y=None, height=MEDIUM_HEIGHT
+        )
         add_button = Button(
             text="Ajouter", size_hint_y=None, height=MEDIUM_HEIGHT
         )
