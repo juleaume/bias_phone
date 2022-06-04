@@ -13,6 +13,10 @@ from architecture import settings_buttons, menu_buttons, buttons_names
 from constants import *
 from game import Game
 
+SMALL_HEIGHT = 40
+MEDIUM_HEIGHT = 60
+LARGE_HEIGHT = 80
+
 
 def name_factory(order):
     def name():
@@ -59,9 +63,13 @@ class BiasScreenManager(ScreenManager):
         self.game_screen = GameScreen(name="game")
 
         self.menu_screen.buttons[EXIT].on_press = exit
+        self.menu_screen.buttons[EXIT].height = LARGE_HEIGHT
+        self.menu_screen.buttons[EXIT].size_hint_y = None
         self.menu_screen.buttons[SETTINGS].on_press = self.switch_to_settings
         self.menu_screen.buttons[GAME].on_press = self.switch_to_game
         self.setting_screen.buttons[BACK].on_press = self.switch_to_menu
+        self.setting_screen.buttons[BACK].height = LARGE_HEIGHT
+        self.setting_screen.buttons[BACK].size_hint_y = None
         self.setting_screen.buttons[
             JUDGEMENTS].on_press = self.switch_to_judgements_settings
 
@@ -119,16 +127,19 @@ class JudgementScreen(Screen):
     def __init__(self, game: Game, **kwargs):
         super(JudgementScreen, self).__init__(**kwargs)
         self.game = game
-        self.layout = BoxLayout(orientation="vertical")
-        add_layout = BoxLayout(orientation="horizontal", size_hint_y=None,
-                               height=40)
+        layout = BoxLayout(orientation="vertical")
+        add_layout = BoxLayout(
+            orientation="horizontal", size_hint_y=None, height=MEDIUM_HEIGHT
+        )
         self.new_judgement = TextInput(
-            text='Hello world', multiline=False, size_hint_y=None, height=40)
-        add_button = Button(text="Ajouter", size_hint_y=None, height=40)
+            text='', multiline=False, size_hint_y=None, height=MEDIUM_HEIGHT)
+        add_button = Button(
+            text="Ajouter", size_hint_y=None, height=MEDIUM_HEIGHT
+        )
         add_button.on_press = self.add_judgement_to_game
         add_layout.add_widget(self.new_judgement)
         add_layout.add_widget(add_button)
-        self.layout.add_widget(add_layout)
+        layout.add_widget(add_layout)
         self.scroll_layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
         # Make sure the height is such that there is something to scroll.
         self.scroll_layout.bind(
@@ -137,22 +148,26 @@ class JudgementScreen(Screen):
         self.display_judgements()
         scroll_view = ScrollView()
         scroll_view.add_widget(self.scroll_layout)
-        self.layout.add_widget(scroll_view)
-        self.back_button = Button(text="Retour", height=40, size_hint_y=None)
-        self.layout.add_widget(self.back_button)
-        self.add_widget(self.layout)
+        layout.add_widget(scroll_view)
+        self.back_button = Button(
+            text="Retour", height=MEDIUM_HEIGHT, size_hint_y=None
+        )
+        layout.add_widget(self.back_button)
+        self.add_widget(layout)
 
     def display_judgements(self):
         self.scroll_layout.clear_widgets()
         for judgement in self.game.judgements:
             _l = BoxLayout(
-                orientation="horizontal", size_hint_y=None, height=40
+                orientation="horizontal", size_hint_y=None, height=SMALL_HEIGHT
             )
-            _l.add_widget(Label(text=judgement, size_hint_y=None, height=40))
+            _l.add_widget(Label(
+                text=judgement, size_hint_y=None, height=SMALL_HEIGHT
+            ))
             _b = Button(
-                text="Supprimer", size_hint_y=None, height=40, width=100,
-                size_hint_x=None, on_press=lambda x: self.remove_judgement(
-                    judgement)
+                text="Supprimer", size_hint_y=None, height=SMALL_HEIGHT,
+                width=100, size_hint_x=None, on_press=lambda x:
+                self.remove_judgement(judgement)
             )
             _l.add_widget(_b)
             self.scroll_layout.add_widget(_l)
