@@ -126,7 +126,7 @@ class Game:
 
     @property
     def can_start(self):
-        return self.jury_number > 0 and self.judgment_number > 0 and \
+        return self.jury_number > 1 and self.judgment_number > 0 and \
                self.player_number > 1
 
 

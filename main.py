@@ -55,12 +55,14 @@ class BiasScreenManager(ScreenManager):
         self.game_screen.start_button.on_press = self.init_game
 
         self.menu_screen.buttons[EXIT].on_press = exit
-        self.menu_screen.buttons[EXIT].height = LARGE_HEIGHT
+        self.menu_screen.buttons[EXIT].height = MEDIUM_HEIGHT
         self.menu_screen.buttons[EXIT].size_hint_y = None
         self.menu_screen.buttons[SETTINGS].on_press = self.switch_to_settings
+        self.menu_screen.buttons[SETTINGS].height = LARGE_HEIGHT
+        self.menu_screen.buttons[SETTINGS].size_hint_y = None
         self.menu_screen.buttons[GAME].on_press = self.switch_to_game
         self.setting_screen.buttons[BACK].on_press = self.switch_to_menu
-        self.setting_screen.buttons[BACK].height = LARGE_HEIGHT
+        self.setting_screen.buttons[BACK].height = MEDIUM_HEIGHT
         self.setting_screen.buttons[BACK].size_hint_y = None
         self.setting_screen.buttons[
             JUDGEMENTS].on_press = self.switch_to_judgements_settings
@@ -304,6 +306,17 @@ class GameInitScreen(Screen):
         self.display_players()
 
     def display_players(self):
+        def presence_factory(_p):
+            def _verify_presence(btn: Button):
+                if _p not in self.game.jury:
+                    self.game.add_jury(_p)
+                    btn.text = "Présent(e)"
+                else:
+                    self.game.remove_jury(_p)
+                    btn.text = "Absent(e)"
+                self.start_button.disabled = not self.game.can_start
+            return _verify_presence
+
         def remove_factory(_p):
             def _remove_player(_):
                 self.remove_player(_p)
@@ -317,12 +330,20 @@ class GameInitScreen(Screen):
             _l.add_widget(Label(
                 text=player, size_hint_y=None, height=SMALL_HEIGHT
             ))
+            checker = presence_factory(player)
+            presence_button = Button(
+                size_hint_y=None, height=SMALL_HEIGHT,
+                width=SMALL_WIDTH, size_hint_x=None, on_press=checker
+            )
+            presence_button.text = "Présent(e)" if player in self.game.jury \
+                else "Absent(e)"
+            _l.add_widget(presence_button)
             remover = remove_factory(player)
-            _b = Button(
+            remover_button = Button(
                 text="Supprimer", size_hint_y=None, height=SMALL_HEIGHT,
                 width=SMALL_WIDTH, size_hint_x=None, on_press=remover
             )
-            _l.add_widget(_b)
+            _l.add_widget(remover_button)
             self.scroll_layout.add_widget(_l)
         self.start_button.disabled = not self.game.can_start
 
